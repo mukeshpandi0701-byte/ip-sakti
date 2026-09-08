@@ -23,6 +23,7 @@ class QueryService:
                 answer=NO_EVIDENCE_ANSWER,
                 evidence=[],
                 grounded=False,
+                evidence_status="insufficient",
                 provider="none",
                 confidence=0,
                 disclaimer="No matching demo evidence was found; this is not legal or regulatory advice.",
@@ -33,12 +34,16 @@ class QueryService:
         except Exception:
             generated = FallbackLLMService().generate_answer(request.question, evidence)
 
+        grounded = bool(generated.grounded and evidence)
+        evidence_status = "sufficient" if grounded else "insufficient"
+        confidence = generated.confidence if grounded else 0
         return QueryResponse(
             answer=generated.answer,
             evidence=evidence,
-            grounded=generated.grounded,
+            grounded=grounded,
+            evidence_status=evidence_status,
             provider=generated.provider,
-            confidence=generated.confidence,
+            confidence=confidence,
             disclaimer="Evidence is synthetic demo content and is not legal or regulatory advice.",
         )
 

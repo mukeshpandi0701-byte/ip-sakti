@@ -3,7 +3,7 @@
 body { margin: 0; }
 .shell { max-width: 840px; margin: 0 auto; padding: 64px 24px; }
 header { margin-bottom: 28px; }
-.eyebrow, .demo-label { color: #197052; font-size: .76rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.eyebrow, .response-label { color: #197052; font-size: .76rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 h1 { margin: 8px 0; font-size: clamp(2.5rem, 8vw, 5rem); line-height: .95; letter-spacing: -.06em; }
 .intro { max-width: 560px; color: #50635b; font-size: 1.1rem; }
 .card, .result { padding: 28px; border: 1px solid #d7e4dd; border-radius: 20px; background: #fff; box-shadow: 0 14px 40px #24523a12; }
@@ -25,5 +25,6 @@ h2 { margin: 22px 0 8px; font-size: 1.1rem; }
 .evidence { display: grid; gap: 10px; }
 .evidence-item { padding: 14px; border-left: 4px solid #75b995; background: #f1f8f4; }
 .evidence-item span { display: block; margin-top: 3px; color: #197052; font-size: .85rem; font-weight: 700; }
+.evidence-item small { display: block; margin-top: 6px; color: #7b5c35; font-size: .8rem; }
 .evidence-item p { margin: 8px 0 0; color: #50635b; }
 .disclaimer { color: #7b5c35; font-size: .9rem; }

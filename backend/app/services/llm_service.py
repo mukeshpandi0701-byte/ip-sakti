@@ -97,7 +97,13 @@ class OllamaLLMService:
         answer = str(body.get("response", "")).strip()
         if not answer:
             raise RuntimeError("Ollama returned an empty answer")
-        return GeneratedAnswer(answer=answer, provider=self.provider_name, grounded=True, confidence=0.8)
+        insufficient = "insufficient evidence" in answer.casefold()
+        return GeneratedAnswer(
+            answer=answer,
+            provider=self.provider_name,
+            grounded=not insufficient,
+            confidence=0.8 if not insufficient else 0,
+        )
 
 
 def create_llm_service(settings: Settings) -> LLMService:

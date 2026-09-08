@@ -19,7 +19,7 @@ document.querySelector('#app').innerHTML = `
       <p id="status" class="status" role="status"></p>
     </section>
     <section id="result" class="result" hidden>
-      <div class="demo-label">DEMO / MOCK RESPONSE</div>
+      <div class="response-label">IP-SAKTI RESPONSE</div>
       <p id="question-display" class="question-display"></p>
       <p id="grounded" class="grounded"></p>
       <h2>Answer</h2>
@@ -55,15 +55,27 @@ form.addEventListener('submit', async (event) => {
     if (!response.ok) throw new Error(`Request failed (${response.status})`);
     const data = await response.json();
     document.querySelector('#question-display').textContent = `Question: ${value}`;
-    document.querySelector('#grounded').textContent = data.grounded
-      ? `Grounded answer · Provider: ${data.provider} · Confidence: ${Math.round(data.confidence * 100)}%`
-      : `Not grounded · Provider: ${data.provider}`;
+    const providerLabel = data.provider === 'ollama'
+      ? 'Ollama'
+      : data.provider === 'fallback-demo'
+        ? 'Fallback (demo)'
+        : data.provider === 'none'
+          ? 'No generation'
+          : data.provider;
+    const evidenceLabel = data.evidence_status === 'sufficient'
+      ? 'Sufficient evidence'
+      : 'Insufficient evidence';
+    const confidenceLabel = data.grounded
+      ? ` · Confidence: ${Math.round(data.confidence * 100)}%`
+      : '';
+    document.querySelector('#grounded').textContent = `${evidenceLabel} · Provider: ${providerLabel}${confidenceLabel}`;
     document.querySelector('#grounded').className = `grounded ${data.grounded ? 'grounded-yes' : 'grounded-no'}`;
     document.querySelector('#answer').textContent = data.answer;
     document.querySelector('#evidence').innerHTML = data.evidence.map((item) => `
       <article class="evidence-item">
         <strong>${item.title}</strong>
         <span>${item.source} · ${item.chunk_id}</span>
+        <small>synthetic demo source — not authoritative</small>
         <p>${item.excerpt}</p>
       </article>
     `).join('') || '<p>No evidence was retrieved.</p>';
