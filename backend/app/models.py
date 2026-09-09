@@ -2,6 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.classification_models import ClassificationResult
 from app.knowledge_models import Evidence
 
 
@@ -19,6 +20,11 @@ class EvidenceItem(BaseModel):
 class QueryResponse(BaseModel):
     answer: str
     evidence: list[Evidence]
+    classification: ClassificationResult = Field(default_factory=lambda: ClassificationResult(
+        intent="UNKNOWN",
+        category="UNKNOWN",
+        confidence=0,
+    ))
     grounded: bool = False
     evidence_status: Literal["sufficient", "insufficient"] = "insufficient"
     provider: str = "fallback"

@@ -1,6 +1,7 @@
 from app.config import settings
 from app.models import QueryRequest, QueryResponse
 from app.services.knowledge_base_service import KnowledgeBaseService, knowledge_base
+from app.services.query_classifier import QueryClassifier
 from app.services.llm_service import FallbackLLMService, LLMService, create_llm_service
 
 
@@ -12,16 +13,24 @@ NO_EVIDENCE_ANSWER = (
 
 
 class QueryService:
-    def __init__(self, knowledge_base_service: KnowledgeBaseService, llm_service: LLMService) -> None:
+    def __init__(
+        self,
+        knowledge_base_service: KnowledgeBaseService,
+        llm_service: LLMService,
+        classifier: QueryClassifier | None = None,
+    ) -> None:
         self.knowledge_base = knowledge_base_service
         self.llm = llm_service
+        self.classifier = classifier or QueryClassifier()
 
     def answer_query(self, request: QueryRequest) -> QueryResponse:
+        classification = self.classifier.classify(request.question)
         evidence = self.knowledge_base.search(request.question, limit=settings.retrieval_limit)
         if not evidence:
             return QueryResponse(
                 answer=NO_EVIDENCE_ANSWER,
                 evidence=[],
+                classification=classification,
                 grounded=False,
                 evidence_status="insufficient",
                 provider="none",
@@ -40,6 +49,7 @@ class QueryService:
         return QueryResponse(
             answer=generated.answer,
             evidence=evidence,
+            classification=classification,
             grounded=grounded,
             evidence_status=evidence_status,
             provider=generated.provider,

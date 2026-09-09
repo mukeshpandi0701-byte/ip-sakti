@@ -34,7 +34,20 @@ def test_query_returns_demo_answer_and_evidence() -> None:
     assert body["is_demo"] is True
     assert "What is a trademark?" in body["answer"]
     assert body["evidence"][0]["is_demo"] is True
+    assert body["classification"]["category"] == "TRADEMARK"
     assert body["grounded"] is True
+
+
+def test_unsupported_query_returns_unknown_classification() -> None:
+    response = client.post("/api/query", json={"question": "quantum spaceship"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["classification"]["category"] == "UNKNOWN"
+    assert body["classification"]["intent"] == "UNKNOWN"
+    assert body["grounded"] is False
+    assert body["evidence_status"] == "insufficient"
+    assert body["confidence"] == 0
 
 
 def test_knowledge_endpoints_return_documents_and_evidence() -> None:
