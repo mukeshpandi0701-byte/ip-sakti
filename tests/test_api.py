@@ -42,6 +42,8 @@ def test_knowledge_endpoints_return_documents_and_evidence() -> None:
     search_response = client.get("/api/knowledge/search", params={"q": "branding"})
 
     assert documents_response.status_code == 200
+    assert documents_response.json()[0]["id"] == "demo-traditional-knowledge-01"
     assert documents_response.json()[0]["source_type"] == "synthetic_demo"
     assert search_response.status_code == 200
     assert search_response.json()[0]["document_id"] == "demo-branding-02"
+    assert search_response.json()[0]["source_type"] == "synthetic_demo"
