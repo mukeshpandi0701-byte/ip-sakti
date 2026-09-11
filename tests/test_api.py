@@ -50,6 +50,45 @@ def test_unsupported_query_returns_unknown_classification() -> None:
     assert body["confidence"] == 0
 
 
+def test_multipart_query_returns_user_evidence_and_preserves_pipeline() -> None:
+    response = client.post(
+        "/api/query",
+        data={"question": "What is a trademark?"},
+        files=[("files", ("notes.txt", b"User-provided supporting text", "text/plain"))],
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["classification"]["category"] == "TRADEMARK"
+    assert body["user_evidence"][0]["filename"] == "notes.txt"
+    assert body["user_evidence"][0]["extraction_status"] == "extracted"
+
+
+def test_evidence_intake_endpoint_returns_structured_statuses() -> None:
+    response = client.post(
+        "/api/evidence/intake",
+        files=[
+            ("files", ("notes.txt", b"User text", "text/plain")),
+            ("files", ("photo.png", b"PNG bytes", "image/png")),
+        ],
+    )
+
+    assert response.status_code == 200
+    statuses = {item["filename"]: item["extraction_status"] for item in response.json()["user_evidence"]}
+    assert statuses == {"notes.txt": "extracted", "photo.png": "image_pending"}
+
+
+def test_empty_upload_returns_clean_validation_error() -> None:
+    response = client.post(
+        "/api/evidence/intake",
+        files=[("files", ("empty.txt", b"", "text/plain"))],
+    )
+
+    assert response.status_code == 400
+    assert "Traceback" not in response.text
+    assert "empty" in response.json()["detail"]
+
+
 def test_knowledge_endpoints_return_documents_and_evidence() -> None:
     documents_response = client.get("/api/knowledge/documents")
     search_response = client.get("/api/knowledge/search", params={"q": "branding"})

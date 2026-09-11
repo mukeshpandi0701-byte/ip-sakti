@@ -4,10 +4,13 @@ from pydantic import BaseModel, Field
 
 from app.classification_models import ClassificationResult
 from app.knowledge_models import Evidence
+from app.user_evidence_models import UserEvidence
 
 
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=2000)
+    response_language: Literal["en", "ta", "hi"] = "en"
+    jurisdiction: Literal["india", "international"] = "india"
 
 
 class EvidenceItem(BaseModel):
@@ -20,6 +23,7 @@ class EvidenceItem(BaseModel):
 class QueryResponse(BaseModel):
     answer: str
     evidence: list[Evidence]
+    user_evidence: list[UserEvidence] = Field(default_factory=list)
     classification: ClassificationResult = Field(default_factory=lambda: ClassificationResult(
         intent="UNKNOWN",
         category="UNKNOWN",
@@ -39,3 +43,7 @@ class QueryResponse(BaseModel):
     )
     is_demo: bool = True
     disclaimer: str
+
+
+class UserEvidenceIntakeResponse(BaseModel):
+    user_evidence: list[UserEvidence] = Field(default_factory=list)

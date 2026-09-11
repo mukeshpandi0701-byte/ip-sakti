@@ -3,6 +3,7 @@ from app.models import QueryRequest, QueryResponse
 from app.services.knowledge_base_service import KnowledgeBaseService, knowledge_base
 from app.services.query_classifier import QueryClassifier
 from app.services.llm_service import FallbackLLMService, LLMService, create_llm_service
+from app.user_evidence_models import UserEvidence
 
 
 NO_EVIDENCE_ANSWER = (
@@ -30,6 +31,7 @@ class QueryService:
             return QueryResponse(
                 answer=NO_EVIDENCE_ANSWER,
                 evidence=[],
+                user_evidence=user_evidence or [],
                 classification=classification,
                 grounded=False,
                 evidence_status="insufficient",
@@ -38,8 +40,12 @@ class QueryService:
                 disclaimer="No matching demo evidence was found; this is not legal or regulatory advice.",
             )
 
+        generation_query = request.question
+        if user_context:
+            generation_query = f"{request.question}\n\nAdditional user-provided context:\n{user_context}"
+
         try:
-            generated = self.llm.generate_answer(request.question, evidence)
+            generated = self.llm.generate_answer(generation_query, evidence)
         except Exception:
             generated = FallbackLLMService().generate_answer(request.question, evidence)
 
@@ -49,6 +55,7 @@ class QueryService:
         return QueryResponse(
             answer=generated.answer,
             evidence=evidence,
+            user_evidence=user_evidence or [],
             classification=classification,
             grounded=grounded,
             evidence_status=evidence_status,
@@ -61,6 +68,14 @@ class QueryService:
 query_service = QueryService(knowledge_base, create_llm_service(settings))
 
 
-def answer_query(request: QueryRequest) -> QueryResponse:
+def answer_query(
+    request: QueryRequest,
+    user_context: str | None = None,
+    user_evidence: list[UserEvidence] | None = None,
+) -> QueryResponse:
     """Compatibility wrapper for callers using the Phase 1 function API."""
-    return query_service.answer_query(request)
+    return query_service.answer_query(
+        request,
+        user_context=user_context,
+        user_evidence=user_evidence,
+    )
