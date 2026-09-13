@@ -24,7 +24,12 @@ class QueryService:
         self.llm = llm_service
         self.classifier = classifier or QueryClassifier()
 
-    def answer_query(self, request: QueryRequest) -> QueryResponse:
+    def answer_query(
+        self,
+        request: QueryRequest,
+        user_context: str | None = None,
+        user_evidence: list[UserEvidence] | None = None,
+    ) -> QueryResponse:
         classification = self.classifier.classify(request.question)
         evidence = self.knowledge_base.search(request.question, limit=settings.retrieval_limit)
         if not evidence:
